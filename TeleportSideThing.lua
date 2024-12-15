@@ -3,104 +3,110 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MovementControlGui"
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "FlashStepGui"
+ScreenGui.Parent = gethui()
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 99999999
+
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(0, 220, 0, 120)
+Container.Position = UDim2.new(0.8, 0, 0.1, 0)
+Container.BackgroundTransparency = 1
+Container.Parent = ScreenGui
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 100)
-Frame.Position = UDim2.new(0.8, 0, 0.1, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+Frame.Size = UDim2.new(1, -10, 1, -10)
+Frame.Position = UDim2.new(0, 5, 0, 5)
+Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+Frame.Parent = Container
+
+for i = 1, 3 do
+    local Shadow = Instance.new("Frame")
+    Shadow.Size = UDim2.new(1, 4 * i, 1, 4 * i)
+    Shadow.Position = UDim2.new(0, -2 * i, 0, -2 * i)
+    Shadow.BackgroundColor3 = Color3.new(0, 0, 0)
+    Shadow.BorderSizePixel = 0
+    Shadow.BackgroundTransparency = 1 - (0.1 / i)
+    Shadow.ZIndex = -i
+    Shadow.Parent = Frame
+    
+    local ShadowCorner = Instance.new("UICorner")
+    ShadowCorner.CornerRadius = UDim.new(0, 5)
+    ShadowCorner.Parent = Shadow
+end
+
+local Outline = Instance.new("UIStroke")
+Outline.Color = Color3.fromRGB(75, 75, 75)
+Outline.Thickness = 1
+Outline.Parent = Frame
 
 local FrameCorner = Instance.new("UICorner")
-FrameCorner.CornerRadius = UDim.new(0, 7)
+FrameCorner.CornerRadius = UDim.new(0, 5)
 FrameCorner.Parent = Frame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Position = UDim2.new(0, 0, 0, 0)
+Title.Position = UDim2.new(0, 0, 0, 5)
 Title.BackgroundTransparency = 1
-Title.Text = "Movement Control"
+Title.Text = "Flash Step"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 14
+Title.TextSize = 16
 Title.Font = Enum.Font.GothamBold
 Title.Parent = Frame
 
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0.8, 0, 0, 25)
-ToggleButton.Position = UDim2.new(0.1, 0, 0.35, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+ToggleButton.Size = UDim2.new(0.85, 0, 0, 30)
+ToggleButton.Position = UDim2.new(0.075, 0, 0.35, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 ToggleButton.Text = "Toggle Movement"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Font = Enum.Font.Gotham
+ToggleButton.Font = Enum.Font.GothamMedium
 ToggleButton.TextSize = 14
 ToggleButton.BorderSizePixel = 0
+ToggleButton.AutoButtonColor = false
 ToggleButton.Parent = Frame
 
 local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 7)
+ButtonCorner.CornerRadius = UDim.new(0, 5)
 ButtonCorner.Parent = ToggleButton
 
 local DistanceLabel = Instance.new("TextLabel")
 DistanceLabel.Size = UDim2.new(0.4, 0, 0, 20)
-DistanceLabel.Position = UDim2.new(0.1, 0, 0.65, 0)
+DistanceLabel.Position = UDim2.new(0.075, 0, 0.7, 0)
 DistanceLabel.BackgroundTransparency = 1
 DistanceLabel.Text = "Distance:"
-DistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+DistanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 DistanceLabel.TextSize = 14
-DistanceLabel.Font = Enum.Font.Gotham
+DistanceLabel.Font = Enum.Font.GothamMedium
 DistanceLabel.Parent = Frame
 
 local DistanceInput = Instance.new("TextBox")
-DistanceInput.Size = UDim2.new(0.3, 0, 0, 20)
-DistanceInput.Position = UDim2.new(0.6, 0, 0.65, 0)
-DistanceInput.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+DistanceInput.Size = UDim2.new(0.35, 0, 0, 25)
+DistanceInput.Position = UDim2.new(0.575, 0, 0.68, 0)
+DistanceInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 DistanceInput.Text = "20"
 DistanceInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-DistanceInput.Font = Enum.Font.Gotham
+DistanceInput.Font = Enum.Font.GothamMedium
 DistanceInput.TextSize = 14
 DistanceInput.BorderSizePixel = 0
 DistanceInput.Parent = Frame
 
 local InputCorner = Instance.new("UICorner")
-InputCorner.CornerRadius = UDim.new(0, 7)
+InputCorner.CornerRadius = UDim.new(0, 5)
 InputCorner.Parent = DistanceInput
 
-local UserInputService = game:GetService("UserInputService")
-local dragging
-local dragInput
-local dragStart
-local startPos
-
-local function update(input)
-    local delta = input.Position - dragStart
-    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-Frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = Frame.Position
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+ToggleButton.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+    }):Play()
 end)
 
-Frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
+ToggleButton.MouseLeave:Connect(function()
+    if not isMoving then
+        game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        }):Play()
     end
 end)
 
@@ -231,4 +237,41 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("Audio Movement GUI by Federal")
+local UserInputService = game:GetService("UserInputService")
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    Container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Container.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+print("Flash Step - federal.wtf")
